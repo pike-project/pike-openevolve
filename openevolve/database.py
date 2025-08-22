@@ -704,7 +704,7 @@ class ProgramDatabase:
         program_path = os.path.join(programs_dir, f"{program.id}.json")
 
         with open(program_path, "w") as f:
-            json.dump(program_dict, f)
+            json.dump(program_dict, f, indent=4)
 
     def _calculate_feature_coords(self, program: Program) -> List[int]:
         """
