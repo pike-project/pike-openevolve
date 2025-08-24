@@ -10,6 +10,10 @@ import traceback
 import signal
 import random
 from openevolve.evaluation_result import EvaluationResult
+import requests
+import os
+from pathlib import Path
+from time import sleep
 
 
 def run_with_timeout(func, args=(), kwargs={}, timeout_seconds=5):
@@ -46,47 +50,92 @@ def evaluate(program_path):
     """
 
     try:
-        # TODO: read the program file and set it to the evaluator
+        # read the program file and send it to the evaluator
 
-        success_count = 1
+        base_url = "http://localhost:8000"
 
-        # If all trials failed, return zero scores
-        if success_count == 0:
-            error_artifacts = {
-                # "error_type": "AllTrialsFailed",
-                # "error_message": f"All {num_trials} trials failed - common issues: timeouts, crashes, or invalid return values",
-                # "suggestion": "Check for infinite loops, ensure function returns (x, y) or (x, y, value), and verify algorithm terminates within time limit"
-            }
-            
+        level = 0
+        task = 1
+
+        with open(program_path) as f:
+            code = f.read()
+
+        submit_path = "/submit"
+        submit_params = {
+            "code": code,
+            "level": level,
+            "task": task
+        }
+
+        res = requests.get(f"{base_url}{submit_path}", params=submit_params)
+
+        eval_id = res.text
+
+        poll_path = "/poll"
+        poll_params = {"id": eval_id}
+
+        while True:
+            res = requests.get(f"{base_url}{poll_path}", params=poll_params)
+            data = res.json()
+            if data is not None:
+                break
+
+            sleep(1)
+
+        artifacts = data
+
+        try:
+            runtime = data["results"]["eval_results"]["runtime"]
+        except Exception as e:
             return EvaluationResult(
                 metrics={
-                    "value_score": 0.0,
-                    "distance_score": 0.0,
-                    "reliability_score": 0.0,
                     "combined_score": 0.0,
-                    "error": "All trials failed",
+                    "error": "Eval failed",
                 },
-                artifacts=error_artifacts
+                artifacts=artifacts
             )
-
-        # Add artifacts for successful runs
-        artifacts = {
-            # "convergence_info": f"Converged in {num_trials} trials with {success_count} successes",
-            # "best_position": f"Final position: x={x_values[-1]:.4f}, y={y_values[-1]:.4f}" if x_values else "No successful trials",
-            # "average_distance_to_global": f"{avg_distance:.4f}",
-            # "search_efficiency": f"Success rate: {reliability_score:.2%}"
-        }
 
         return EvaluationResult(
             metrics={
-                # "value_score": value_score,
-                # "distance_score": distance_score,
-                # "reliability_score": reliability_score,
-                # "combined_score": combined_score,
-                "combined_score": random.random()
+                "combined_score": 1 / runtime
             },
             artifacts=artifacts
         )
+
+        # success_count = 1
+
+        # if success_count == 0:
+        #     error_artifacts = {
+        #         # "error_type": "AllTrialsFailed",
+        #         # "error_message": f"All {num_trials} trials failed - common issues: timeouts, crashes, or invalid return values",
+        #         # "suggestion": "Check for infinite loops, ensure function returns (x, y) or (x, y, value), and verify algorithm terminates within time limit"
+        #     }
+            
+        #     return EvaluationResult(
+        #         metrics={
+        #             "combined_score": 0.0,
+        #             "error": "All trials failed",
+        #         },
+        #         artifacts=error_artifacts
+        #     )
+
+        # artifacts = {
+        #     # "convergence_info": f"Converged in {num_trials} trials with {success_count} successes",
+        #     # "best_position": f"Final position: x={x_values[-1]:.4f}, y={y_values[-1]:.4f}" if x_values else "No successful trials",
+        #     # "average_distance_to_global": f"{avg_distance:.4f}",
+        #     # "search_efficiency": f"Success rate: {reliability_score:.2%}"
+        # }
+
+        # return EvaluationResult(
+        #     metrics={
+        #         # "value_score": value_score,
+        #         # "distance_score": distance_score,
+        #         # "reliability_score": reliability_score,
+        #         # "combined_score": combined_score,
+        #         "combined_score": random.random()
+        #     },
+        #     artifacts=artifacts
+        # )
     except Exception as e:
         print(f"Evaluation failed completely: {str(e)}")
         print(traceback.format_exc())

@@ -21,7 +21,7 @@ llm:
 
 # Prompt configuration
 prompt:
-  system_message: "Improve this pytorch kernel"
+  system_message: "You are a performance engineering expert"
 
 # Database configuration
 database:
