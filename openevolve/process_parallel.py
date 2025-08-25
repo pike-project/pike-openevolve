@@ -8,6 +8,8 @@ import multiprocessing as mp
 import pickle
 import signal
 import time
+import random
+import os
 from concurrent.futures import ProcessPoolExecutor, Future
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -127,6 +129,9 @@ def _run_iteration_worker(
 ) -> SerializableResult:
     """Run a single iteration in a worker process"""
     try:
+        rng = random.Random()
+        rng.seed(os.urandom(16))
+
         # Lazy initialization
         _lazy_init_worker_components()
 
@@ -182,6 +187,7 @@ def _run_iteration_worker(
                 _worker_llm_ensemble.generate_with_context(
                     system_message=prompt["system"],
                     messages=[{"role": "user", "content": prompt["user"]}],
+                    rng=rng
                 )
             )
         except Exception as e:

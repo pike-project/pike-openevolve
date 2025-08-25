@@ -58,15 +58,19 @@ class LLMEnsemble:
         return await model.generate(prompt, **kwargs)
 
     async def generate_with_context(
-        self, system_message: str, messages: List[Dict[str, str]], **kwargs
+        self, system_message: str, messages: List[Dict[str, str]], rng=None, **kwargs
     ) -> str:
         """Generate text using a system message and conversational context"""
-        model = self._sample_model()
+        model = self._sample_model(rng)
         return await model.generate_with_context(system_message, messages, **kwargs)
 
-    def _sample_model(self) -> LLMInterface:
+    def _sample_model(self, rng=None) -> LLMInterface:
         """Sample a model from the ensemble based on weights"""
-        index = self.random_state.choices(range(len(self.models)), weights=self.weights, k=1)[0]
+        if rng is None:
+            rng = self.random_state
+
+        index = rng.choices(range(len(self.models)), weights=self.weights, k=1)[0]
+        logger.info(f"Model options: {self.models}, index: {index}, weights: {self.weights}")
         sampled_model = self.models[index]
         logger.info(f"Sampled model: {vars(sampled_model)['model']}")
         return sampled_model
