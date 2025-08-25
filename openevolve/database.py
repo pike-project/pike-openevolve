@@ -99,8 +99,9 @@ class ProgramDatabase:
     It also tracks the absolute best program separately to ensure it's never lost.
     """
 
-    def __init__(self, config: DatabaseConfig):
+    def __init__(self, config: DatabaseConfig, output_dir):
         self.config = config
+        self.output_dir = output_dir
 
         # In-memory program storage
         self.programs: Dict[str, Program] = {}
@@ -2035,18 +2036,18 @@ class ProgramDatabase:
         os.makedirs(artifact_dir, exist_ok=True)
         return artifact_dir
 
-    def _cleanup_old_artifacts(self, checkpoint_path: str) -> None:
+    def _cleanup_old_artifacts(self, prompt_path: str) -> None:
         """
         Remove artifact directories older than the configured retention period.
 
         Args:
-            checkpoint_path: The path of the current checkpoint being saved, which
+            prompt_path: The path of the current checkpoint being saved, which
                              contains the artifacts folder to be cleaned.
         """
         if not self.config.cleanup_old_artifacts:
             return
 
-        artifacts_base_path = os.path.join(checkpoint_path, "artifacts")
+        artifacts_base_path = os.path.join(prompt_path, "artifacts")
 
         if not os.path.isdir(artifacts_base_path):
             return
@@ -2154,3 +2155,19 @@ class ProgramDatabase:
         if program_id not in self.prompts_by_program:
             self.prompts_by_program[program_id] = {}
         self.prompts_by_program[program_id][template_key] = prompt
+
+        prompt_dir = os.path.join(self.output_dir, "prompts")
+        os.makedirs(prompt_dir, exist_ok=True)
+
+        program_dir = os.path.join(prompt_dir, f"{program_id}")
+        os.makedirs(program_dir, exist_ok=True)
+
+        prompt_path = os.path.join(program_dir, "prompt.md")
+        res_path = os.path.join(program_dir, "response.md")
+
+        with open(prompt_path, "w") as f:
+            f.write(prompt["user"])
+        
+        if len(responses) > 0:
+            with open(res_path, "w") as f:
+                f.write(responses[0])

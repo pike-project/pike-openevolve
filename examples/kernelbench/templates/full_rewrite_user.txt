@@ -1,0 +1,18 @@
+# Current Program Information
+- Fitness: {fitness_score}
+- Feature coordinates: {feature_coords}
+
+{artifacts}
+
+# Program Evolution History
+{evolution_history}
+
+# Current Program
+```{language}
+{current_program}
+```
+
+# Task
+Modify the current program slightly by renaming variables, but ensure that the new program will match output of the original program, given the same input tensor. DO NOT rename the Model class, but DO rename variables within the Model class
+
+Only output the new Python code, NOTHING ELSE
