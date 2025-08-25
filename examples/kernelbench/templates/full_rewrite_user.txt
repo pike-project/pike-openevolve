@@ -59,14 +59,14 @@ elementwise_add_source = """
 #include <torch/extension.h>
 #include <cuda_runtime.h>
 
-__global__ void elementwise_add_kernel(const float* a, const float* b, float* out, int size) {
+__global__ void elementwise_add_kernel(const float* a, const float* b, float* out, int size) {{
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < size) {
+    if (idx < size) {{
         out[idx] = a[idx] + b[idx];
-    }
-}
+    }}
+}}
 
-torch::Tensor elementwise_add_cuda(torch::Tensor a, torch::Tensor b) {
+torch::Tensor elementwise_add_cuda(torch::Tensor a, torch::Tensor b) {{
     auto size = a.numel();
     auto out = torch::zeros_like(a);
 
@@ -76,7 +76,7 @@ torch::Tensor elementwise_add_cuda(torch::Tensor a, torch::Tensor b) {
     elementwise_add_kernel<<<num_blocks, block_size>>>(a.data_ptr<float>(), b.data_ptr<float>(), out.data_ptr<float>(), size);
 
     return out;
-}
+}}
 """
 
 elementwise_add_cpp_source = (
