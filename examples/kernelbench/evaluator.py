@@ -55,7 +55,7 @@ def evaluate(program_path):
         base_url = "http://localhost:8000"
 
         level = 0
-        task = 1
+        task = 5
 
         with open(program_path) as f:
             code = f.read()
@@ -90,6 +90,7 @@ def evaluate(program_path):
             return EvaluationResult(
                 metrics={
                     "combined_score": 0.0,
+                    "runtime": 0.0,
                     "error": "Eval failed",
                 },
                 artifacts=artifacts
@@ -97,7 +98,8 @@ def evaluate(program_path):
 
         return EvaluationResult(
             metrics={
-                "combined_score": 1 / runtime
+                "combined_score": 1 / runtime,
+                "runtime": runtime,
             },
             artifacts=artifacts
         )

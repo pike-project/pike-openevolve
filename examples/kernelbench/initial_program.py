@@ -1,24 +1,33 @@
 # EVOLVE-BLOCK-START
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self, num_classes=1000):
+    """
+    Simple model that performs a Softmax activation.
+    """
+    def __init__(self):
         super(Model, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=96, kernel_size=11, stride=4, padding=2)
     
-    def forward(self, x):
-        x = self.conv1(x)
-        return x
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Applies Softmax activation to the input tensor.
 
-# Test code
-batch_size = 100
-num_classes = 1000
+        Args:
+            x (torch.Tensor): Input tensor of shape (batch_size, num_features).
+
+        Returns:
+            torch.Tensor: Output tensor with Softmax applied, same shape as input.
+        """
+        return torch.softmax(x, dim=1)
+
+batch_size = 4096
+dim = 65536
 
 def get_inputs():
-    return [torch.randn(batch_size, 3, 224, 224)]
+    x = torch.randn(batch_size, dim)
+    return [x]
 
 def get_init_inputs():
-    return [num_classes]
+    return []  # No special initialization inputs needed
 # EVOLVE-BLOCK-END
