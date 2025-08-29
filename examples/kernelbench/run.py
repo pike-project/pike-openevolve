@@ -69,7 +69,7 @@ async def main():
     level_str = "0"
 
     timestamp_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    run_dir = "openevolve_output_runs" / timestamp_str
+    run_dir = curr_dir / "openevolve_output_runs" / timestamp_str
     os.makedirs(run_dir, exist_ok=True)
 
     base_config_path = curr_dir / "config.yaml"
