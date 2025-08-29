@@ -8,7 +8,7 @@ from openevolve import OpenEvolve
 
 curr_dir = Path(os.path.realpath(os.path.dirname(__file__)))
 
-async def run_task(run_dir: Path, level: str, task: int, eval_file: Path, config_path: Path):
+async def run_task(run_dir: Path, level: str, task: int, config_path: Path):
     kernel_bench_dir = Path("/pscratch/sd/k/kir/llm/KernelBench")
     level_dir = kernel_bench_dir / "KernelBench" / f"level{level}"
 
