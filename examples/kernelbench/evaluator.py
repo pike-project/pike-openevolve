@@ -12,9 +12,11 @@ import random
 from openevolve.evaluation_result import EvaluationResult
 import requests
 import os
+import json
 from pathlib import Path
 from time import sleep
 
+curr_dir = Path(os.path.realpath(os.path.dirname(__file__)))
 
 def run_with_timeout(func, args=(), kwargs={}, timeout_seconds=5):
     """
@@ -54,8 +56,11 @@ def evaluate(program_path):
 
         base_url = "http://localhost:8000"
 
-        level = 0
-        task = 5
+        with open(curr_dir / "eval_config.json") as f:
+            eval_config = json.load(f)
+
+        level = eval_config["level"]
+        task = eval_config["task"]
 
         with open(program_path) as f:
             code = f.read()
