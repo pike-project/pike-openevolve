@@ -402,6 +402,15 @@ def load_config(config_path: Optional[Union[str, Path]] = None) -> Config:
     """Load configuration from a YAML file or use defaults"""
     if config_path and os.path.exists(config_path):
         config = Config.from_yaml(config_path)
+
+        api_base = config.llm.api_base
+        api_key = config.llm.api_key
+        if "generativelanguage.googleapis.com" in api_base:
+            api_key = os.environ.get("GEMINI_API_KEY")
+        elif "api.cborg.lbl.gov" in api_base:
+            api_key = os.environ.get("CBORG_API_KEY")
+
+        config.llm.update_model_params({"api_key": api_key, "api_base": api_base})
     else:
         config = Config()
 
