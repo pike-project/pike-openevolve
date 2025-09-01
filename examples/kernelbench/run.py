@@ -25,7 +25,9 @@ async def run_task(run_dir: Path, level: str, task: int, config_path: Path):
             break
 
     if task_filename is None:
-        raise Exception(f"Task not found: {task}")
+        print(f"Warning: task not found, skipping - {task}")
+        return
+        # raise Exception(f"Task not found: {task}")
     
     task_path = level_dir / task_filename
 
@@ -66,7 +68,9 @@ async def run_task(run_dir: Path, level: str, task: int, config_path: Path):
     await runner.run()
 
 async def main():
-    level_str = "0"
+    level_str = "3-metr"
+    task_start = 1
+    task_end = 10
 
     timestamp_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     run_dir = curr_dir / "openevolve_output_runs" / timestamp_str
@@ -76,7 +80,7 @@ async def main():
     config_path = run_dir / "config.yaml"
     shutil.copy(base_config_path, config_path)
 
-    for task in range(1, 3):
+    for task in range(task_start, task_end + 1):
         await run_task(run_dir, level_str, task, config_path)
 
 if __name__ == "__main__":
