@@ -6,6 +6,7 @@ import asyncio
 import logging
 import os
 import signal
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -281,17 +282,15 @@ class OpenEvolve:
 
             # Set up signal handlers for graceful shutdown
             def signal_handler(signum, frame):
-                logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+                # logger.info(f"Received signal {signum}, initiating graceful shutdown...")
                 self.parallel_controller.request_shutdown()
 
-                # Set up a secondary handler for immediate exit if user presses Ctrl+C again
-                def force_exit_handler(signum, frame):
-                    logger.info("Force exit requested - terminating immediately")
-                    import sys
+                # # Set up a secondary handler for immediate exit if user presses Ctrl+C again
+                # def force_exit_handler(signum, frame):
+                #     logger.info("Force exit requested - terminating immediately")
 
-                    sys.exit(0)
-
-                signal.signal(signal.SIGINT, force_exit_handler)
+                sys.exit(0)
+                # signal.signal(signal.SIGINT, force_exit_handler)
 
             signal.signal(signal.SIGINT, signal_handler)
             signal.signal(signal.SIGTERM, signal_handler)
