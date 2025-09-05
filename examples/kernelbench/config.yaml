@@ -1,5 +1,5 @@
 # Configuration for function minimization example
-max_iterations: 200
+max_iterations: 300
 checkpoint_interval: 10
 
 # LLM configuration
@@ -7,15 +7,15 @@ llm:
   # primary_model: "lbl/llama"
   primary_model: "gemini-2.5-pro"
   # primary_model: "llama3.1-8b"
-  primary_model_weight: 0.7
+  primary_model_weight: 1.0
   # secondary_model: "lbl/cborg-deepthought"
-  secondary_model: "gemini-2.5-flash"
+  secondary_model: "gemini-2.5-pro"
   # secondary_model: "llama-4-scout-17b-16e-instruct"
-  secondary_model_weight: 0.3
+  secondary_model_weight: 0.0
   # api_base: "https://api.cborg.lbl.gov"
   api_base: "https://generativelanguage.googleapis.com/v1beta/openai/"
   # api_base: "https://api.cerebras.ai/v1"
-  temperature: 0.7
+  temperature: 0.8
   max_tokens: 32000
   timeout: 900
 
