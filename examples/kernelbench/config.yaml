@@ -45,4 +45,4 @@ evaluator:
 # Evolution settings
 # diff_based_evolution: true
 diff_based_evolution: false
-max_code_length: 20000
+max_code_length: 100000
