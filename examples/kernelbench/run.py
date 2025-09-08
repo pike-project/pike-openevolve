@@ -69,10 +69,10 @@ async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int,
 
 async def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--kernel_bench_dir", type=str)
-    parser.add_argument("--level", type=str)
-    parser.add_argument("--task_start", type=int)
-    parser.add_argument("--task_end", type=int)
+    parser.add_argument("--kernel_bench_dir", type=str, required=True)
+    parser.add_argument("--level", type=str, required=True)
+    parser.add_argument("--task_start", type=int, required=True)
+    parser.add_argument("--task_end", type=int, required=True)
     args = parser.parse_args()
 
     level_str = args.level
