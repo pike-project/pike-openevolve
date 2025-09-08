@@ -54,10 +54,11 @@ def evaluate(program_path):
     try:
         # read the program file and send it to the evaluator
 
-        base_url = "http://localhost:8000"
-
         with open(curr_dir / "eval_config.json") as f:
             eval_config = json.load(f)
+
+        eval_port = eval_config["port"]
+        base_url = f"http://localhost:{eval_port}"
 
         level = eval_config["level"]
         task = eval_config["task"]

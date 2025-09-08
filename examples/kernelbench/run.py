@@ -9,7 +9,7 @@ import argparse
 
 curr_dir = Path(os.path.realpath(os.path.dirname(__file__)))
 
-async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int, config_path: Path):
+async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int, eval_port: int, config_path: Path):
     level_dir = kernel_bench_dir / "KernelBench" / f"level{level}"
 
     task_filename = None
@@ -55,6 +55,7 @@ async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int,
     eval_config = {
         "level": level,
         "task": task,
+        "port": eval_port,
     }
 
     with open(eval_config_path, "w") as f:
@@ -73,6 +74,7 @@ async def main():
     parser.add_argument("--level", type=str, required=True)
     parser.add_argument("--task_start", type=int, required=True)
     parser.add_argument("--task_end", type=int, required=True)
+    parser.add_argument("--eval_port", type=int, required=False, default=8000)
     args = parser.parse_args()
 
     level_str = args.level
@@ -90,7 +92,7 @@ async def main():
     shutil.copy(base_config_path, config_path)
 
     for task in range(task_start, task_end + 1):
-        await run_task(kernel_bench_dir, run_dir, level_str, task, config_path)
+        await run_task(kernel_bench_dir, run_dir, level_str, task, args.eval_port, config_path)
 
 if __name__ == "__main__":
     asyncio.run(main())
