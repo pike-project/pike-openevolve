@@ -125,7 +125,7 @@ def _lazy_init_worker_components():
 
 
 def _run_iteration_worker(
-    iteration: int, db_snapshot: Dict[str, Any], parent_id: str, inspiration_ids: List[str]
+    iteration: int, db_snapshot: Dict[str, Any], parent_id: str, res_output_path: Path, inspiration_ids: List[str]
 ) -> SerializableResult:
     """Run a single iteration in a worker process"""
     try:
@@ -187,7 +187,8 @@ def _run_iteration_worker(
                 _worker_llm_ensemble.generate_with_context(
                     system_message=prompt["system"],
                     messages=[{"role": "user", "content": prompt["user"]}],
-                    rng=rng
+                    rng=rng,
+                    res_output_path=res_output_path
                 )
             )
         except Exception as e:
@@ -284,6 +285,14 @@ class ProcessParallelController:
         self.config = config
         self.evaluation_file = evaluation_file
         self.database = database
+
+        output_dir = Path(self.database.output_dir)
+        raw_responses_dir = output_dir / "raw_responses"
+
+        logger.info(f"raw_responses_dir: {raw_responses_dir}")
+        os.makedirs(raw_responses_dir, exist_ok=True)
+
+        self.raw_responses_dir = raw_responses_dir
 
         self.executor: Optional[ProcessPoolExecutor] = None
         self.shutdown_event = mp.Event()
@@ -665,12 +674,15 @@ class ProcessParallelController:
             db_snapshot = self._create_database_snapshot()
             db_snapshot["sampling_island"] = target_island  # Mark which island this is for
 
+            res_output_path = self.raw_responses_dir / f"response_{iteration}.json"
+
             # Submit to process pool
             future = self.executor.submit(
                 _run_iteration_worker,
                 iteration,
                 db_snapshot,
                 parent.id,
+                res_output_path,
                 [insp.id for insp in inspirations],
             )
 

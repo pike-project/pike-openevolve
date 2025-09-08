@@ -5,6 +5,7 @@ OpenAI API interface for LLMs
 import asyncio
 import logging
 import time
+import json
 from typing import Any, Dict, List, Optional, Union
 
 import openai
@@ -129,9 +130,11 @@ class OpenAILLM(LLMInterface):
         retry_delay = kwargs.get("retry_delay", self.retry_delay)
         timeout = kwargs.get("timeout", self.timeout)
 
+        res_output_path = kwargs.get("res_output_path")
+
         for attempt in range(retries + 1):
             try:
-                response = await asyncio.wait_for(self._call_api(params), timeout=timeout)
+                response = await asyncio.wait_for(self._call_api(params, res_output_path), timeout=timeout)
                 return response
             except asyncio.TimeoutError:
                 if attempt < retries:
@@ -150,7 +153,7 @@ class OpenAILLM(LLMInterface):
                     logger.error(f"All {retries + 1} attempts failed with error: {str(e)}")
                     raise
 
-    async def _call_api(self, params: Dict[str, Any]) -> str:
+    async def _call_api(self, params: Dict[str, Any], res_output_path) -> str:
         """Make the actual API call"""
         # Use asyncio to run the blocking API call in a thread pool
         loop = asyncio.get_event_loop()
@@ -161,4 +164,8 @@ class OpenAILLM(LLMInterface):
         logger = logging.getLogger(__name__)
         logger.debug(f"API parameters: {params}")
         logger.debug(f"API response: {response.choices[0].message.content}")
+
+        with open(res_output_path, "w") as f:
+            json.dump(response.to_dict(), f, indent=4)
+
         return response.choices[0].message.content
