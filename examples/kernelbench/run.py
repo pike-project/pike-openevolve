@@ -5,11 +5,11 @@ import json
 from pathlib import Path
 from datetime import datetime
 from openevolve import OpenEvolve
+import argparse
 
 curr_dir = Path(os.path.realpath(os.path.dirname(__file__)))
 
-async def run_task(run_dir: Path, level: str, task: int, config_path: Path):
-    kernel_bench_dir = Path("/pscratch/sd/k/kir/llm/KernelBench")
+async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int, config_path: Path):
     level_dir = kernel_bench_dir / "KernelBench" / f"level{level}"
 
     task_filename = None
@@ -68,9 +68,18 @@ async def run_task(run_dir: Path, level: str, task: int, config_path: Path):
     await runner.run()
 
 async def main():
-    level_str = "3-metr"
-    task_start = 1
-    task_end = 10
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--kernel_bench_dir", type=str)
+    parser.add_argument("--level", type=str)
+    parser.add_argument("--task_start", type=int)
+    parser.add_argument("--task_end", type=int)
+    args = parser.parse_args()
+
+    level_str = args.level
+    task_start = args.task_start
+    task_end = args.task_end
+
+    kernel_bench_dir = Path(args.kernel_bench_dir)
 
     timestamp_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     run_dir = curr_dir / "openevolve_output_runs" / timestamp_str
@@ -81,7 +90,7 @@ async def main():
     shutil.copy(base_config_path, config_path)
 
     for task in range(task_start, task_end + 1):
-        await run_task(run_dir, level_str, task, config_path)
+        await run_task(kernel_bench_dir, run_dir, level_str, task, config_path)
 
 if __name__ == "__main__":
     asyncio.run(main())
