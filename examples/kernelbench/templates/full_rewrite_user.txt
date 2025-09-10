@@ -96,7 +96,7 @@ class ModelNew(nn.Module):
 
 The goal is to optimize this architecture:
 
-```
+```{language}
 {initial_program_code}
 ```
 
