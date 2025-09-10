@@ -338,7 +338,8 @@ class PromptSampler:
                     else:
                         key_features.append(f"Performs well on {name} ({value})")
 
-            key_features_str = ", ".join(key_features)
+            # key_features_str = ", ".join(key_features)
+            key_features_str = ""
 
             top_programs_str += (
                 top_program_template.format(

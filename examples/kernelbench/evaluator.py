@@ -96,7 +96,6 @@ def evaluate(program_path):
             return EvaluationResult(
                 metrics={
                     "combined_score": 0.0,
-                    "runtime": 0.0,
                     "error": "Eval failed",
                 },
                 artifacts=artifacts

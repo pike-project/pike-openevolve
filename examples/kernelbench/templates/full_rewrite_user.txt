@@ -102,7 +102,10 @@ The goal is to optimize this architecture:
 
 # Current Program Information
 
-The current optimization attempt is shown here, along with other prior attempts to serve as inspiration. The score (fitness) of each program is computed as: `combined_score = 1 / runtime`
+The current optimization attempt is shown here, along with other prior attempts to serve as inspiration.
+
+The score (fitness) of each program is computed as: `combined_score = 1 / runtime`
+A score of 0.0 indicates that program evaluation failed, either due to an error or a failed correctness check.
 
 - Fitness: {fitness_score}
 - Feature coordinates: {feature_coords}

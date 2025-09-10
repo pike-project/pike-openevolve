@@ -113,7 +113,6 @@ TOP_PROGRAM_TEMPLATE = """### Program {program_number} (Score: {score})
 ```{language}
 {program_snippet}
 ```
-Key features: {key_features}
 """
 
 # Template for formatting inspirations section
