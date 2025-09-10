@@ -1,18 +1,4 @@
-# Current Program Information
-- Fitness: {fitness_score}
-- Feature coordinates: {feature_coords}
-
-{artifacts}
-
-# Program Evolution History
-{evolution_history}
-
-# Current Program
-```{language}
-{current_program}
-```
-
-# Task
+# Goal
 
 You write custom CUDA kernels to replace the pytorch operators in the given architecture to get speedups.
 
@@ -48,6 +34,7 @@ def get_init_inputs():
 ```
 
 The new architecture for the previous example with custom CUDA kernels looks like this:
+
 ```python
 import torch
 import torch.nn as nn
@@ -105,6 +92,33 @@ class ModelNew(nn.Module):
 
 ```
 
-Your task is to modify the Current Program (shown above) to get performance gains.
-Try to make changes which will significantly improve performance by modifying your previous solution.
+# Given Architecture
+
+The goal is to optimize this architecture:
+
+```
+{initial_program_code}
+```
+
+# Current Program Information
+
+The current optimization attempt is shown here, along with other prior attempts to serve as inspiration. The score (fitness) of each program is computed as: `combined_score = 1 / runtime`
+
+- Fitness: {fitness_score}
+- Feature coordinates: {feature_coords}
+
+{artifacts}
+
+# Program Evolution History
+{evolution_history}
+
+# Current Program
+```{language}
+{current_program}
+```
+
+# Task
+
+Your task is to modify the Current Program to get performance gains which exceed the original Given Architecture, Current Program, and any other prior solutions.
+Try to make changes which will improve performance by modifying the Current Program, taking inspiration from other prior optimization attempts.
 Generate real code, NOT pseudocode. Just output the new model code, no other text.

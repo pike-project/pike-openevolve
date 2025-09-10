@@ -277,7 +277,7 @@ class OpenEvolve:
         # Initialize improved parallel processing
         try:
             self.parallel_controller = ProcessParallelController(
-                self.config, self.evaluation_file, self.database
+                self.config, self.evaluation_file, self.database, self.initial_program_code
             )
 
             # Set up signal handlers for graceful shutdown

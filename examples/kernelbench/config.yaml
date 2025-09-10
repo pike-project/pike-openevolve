@@ -25,13 +25,24 @@ prompt:
   template_dir: "examples/kernelbench/templates"
   system_message: "You are a performance engineering expert"
 
+  # Number of previous top programs to include in the prompt.
+  # This number is also used to determine the number of of "inspiration" programs (more randomly sampled)
+  # in the prompt.
+  num_top_programs: 3
+
 # Database configuration
 database:
   population_size: 25
   archive_size: 12
   num_islands: 3
+  # the elite_selection_ratio tells us the percentage of elite programs that will be included in
+  # the "inspiration" set of solutions that are provided as part of the prompt
   elite_selection_ratio: 0.2
+  # the exploration, exploitation, and random ratios dictate where to sample from for the "Current Program" handed
+  # to the LLM to optimize
+  exploration_ratio: 0.2
   exploitation_ratio: 0.7
+  # the remaining (1 - (exploration_ratio + exploitation_ratio)) => random sampling
   log_prompts: true
 
 # Evaluator configuration

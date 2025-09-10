@@ -125,7 +125,7 @@ def _lazy_init_worker_components():
 
 
 def _run_iteration_worker(
-    iteration: int, db_snapshot: Dict[str, Any], parent_id: str, res_output_path: Path, inspiration_ids: List[str]
+    iteration: int, db_snapshot: Dict[str, Any], parent_id: str, res_output_path: Path, initial_program_code: str, inspiration_ids: List[str]
 ) -> SerializableResult:
     """Run a single iteration in a worker process"""
     try:
@@ -169,6 +169,7 @@ def _run_iteration_worker(
             current_program=parent.code,
             parent_program=parent.code,
             program_metrics=parent.metrics,
+            initial_program_code=initial_program_code,
             previous_programs=[p.to_dict() for p in best_programs_only],
             top_programs=[p.to_dict() for p in programs_for_prompt],
             inspirations=[p.to_dict() for p in inspirations],
@@ -281,10 +282,11 @@ def _run_iteration_worker(
 class ProcessParallelController:
     """Controller for process-based parallel evolution"""
 
-    def __init__(self, config: Config, evaluation_file: str, database: ProgramDatabase):
+    def __init__(self, config: Config, evaluation_file: str, database: ProgramDatabase, initial_program_code: str):
         self.config = config
         self.evaluation_file = evaluation_file
         self.database = database
+        self.initial_program_code = initial_program_code
 
         output_dir = Path(self.database.output_dir)
         raw_responses_dir = output_dir / "raw_responses"
@@ -683,6 +685,7 @@ class ProcessParallelController:
                 db_snapshot,
                 parent.id,
                 res_output_path,
+                self.initial_program_code,
                 [insp.id for insp in inspirations],
             )
 
