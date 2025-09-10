@@ -2127,6 +2127,7 @@ class ProgramDatabase:
     def log_prompt(
         self,
         program_id: str,
+        iteration: int,
         template_key: str,
         prompt: Dict[str, str],
         responses: Optional[List[str]] = None,
@@ -2159,7 +2160,7 @@ class ProgramDatabase:
         prompt_dir = os.path.join(self.output_dir, "prompts")
         os.makedirs(prompt_dir, exist_ok=True)
 
-        program_dir = os.path.join(prompt_dir, f"{program_id}")
+        program_dir = os.path.join(prompt_dir, f"iter_{iteration}")
         os.makedirs(program_dir, exist_ok=True)
 
         prompt_path = os.path.join(program_dir, "prompt.md")

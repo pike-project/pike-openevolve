@@ -499,6 +499,7 @@ class ProcessParallelController:
                                 else "diff_user"
                             ),
                             program_id=child_program.id,
+                            iteration=completed_iteration,
                             prompt=result.prompt,
                             responses=[result.llm_response] if result.llm_response else [],
                         )
