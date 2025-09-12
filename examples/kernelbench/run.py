@@ -84,11 +84,12 @@ async def main():
 
     kernel_bench_dir = Path(args.kernel_bench_dir)
 
-    run_dir = args.run_dir
-    if run_dir is None:
+    if args.run_dir is None:
         timestamp_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         run_dir = curr_dir / "openevolve_output_runs" / timestamp_str
-    
+    else:
+        run_dir = Path(args.run_dir)
+
     os.makedirs(run_dir, exist_ok=True)
 
     base_config_path = curr_dir / "config.yaml"
