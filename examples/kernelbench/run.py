@@ -75,6 +75,7 @@ async def main():
     parser.add_argument("--task_start", type=int, required=True)
     parser.add_argument("--task_end", type=int, required=True)
     parser.add_argument("--eval_port", type=int, required=False, default=8000)
+    parser.add_argument("--run_dir", type=str, required=False)
     args = parser.parse_args()
 
     level_str = args.level
@@ -83,8 +84,11 @@ async def main():
 
     kernel_bench_dir = Path(args.kernel_bench_dir)
 
-    timestamp_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    run_dir = curr_dir / "openevolve_output_runs" / timestamp_str
+    run_dir = args.run_dir
+    if run_dir is None:
+        timestamp_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        run_dir = curr_dir / "openevolve_output_runs" / timestamp_str
+    
     os.makedirs(run_dir, exist_ok=True)
 
     base_config_path = curr_dir / "config.yaml"
