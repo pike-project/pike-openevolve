@@ -9,7 +9,7 @@ import argparse
 
 curr_dir = Path(os.path.realpath(os.path.dirname(__file__)))
 
-async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int, eval_port: int, config_path: Path):
+async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int, eval_port: int, base_config_path: Path):
     level_dir = kernel_bench_dir / "KernelBench" / f"level{level}"
 
     task_filename = None
@@ -34,8 +34,13 @@ async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int,
     with open(task_path) as f:
         task_code = f.read()
 
-    evolve_dir = run_dir / f"task{task}"
+    tasks_dir = run_dir / "tasks"
+    evolve_dir = tasks_dir / f"task{task}"
     os.makedirs(evolve_dir, exist_ok=True)
+
+    config_path = evolve_dir / "config.yaml"
+
+    shutil.copy(base_config_path, config_path)
 
     # when we grab a task to run from KernelBench, must wrap it with EVOLVE blocks!
     init_program = evolve_dir / "initial_program.py"
@@ -93,11 +98,9 @@ async def main():
     os.makedirs(run_dir, exist_ok=True)
 
     base_config_path = curr_dir / "config.yaml"
-    config_path = run_dir / "config.yaml"
-    shutil.copy(base_config_path, config_path)
 
     for task in range(task_start, task_end + 1):
-        await run_task(kernel_bench_dir, run_dir, level_str, task, args.eval_port, config_path)
+        await run_task(kernel_bench_dir, run_dir, level_str, task, args.eval_port, base_config_path)
 
 if __name__ == "__main__":
     asyncio.run(main())
