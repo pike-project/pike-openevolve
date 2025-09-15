@@ -176,6 +176,10 @@ class OpenEvolve:
         root_logger = logging.getLogger()
         root_logger.setLevel(getattr(logging, self.config.log_level))
 
+        # Remove any existing handlers to avoid duplicates
+        if root_logger.hasHandlers():
+            root_logger.handlers.clear()
+
         # Add file handler
         log_file = os.path.join(log_dir, f"openevolve_{time.strftime('%Y%m%d_%H%M%S')}.log")
         file_handler = logging.FileHandler(log_file)
