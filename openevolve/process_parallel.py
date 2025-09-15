@@ -123,7 +123,6 @@ def _lazy_init_worker_components():
             database=None,  # No shared database in worker
         )
 
-
 def _run_iteration_worker(
     iteration: int, db_snapshot: Dict[str, Any], parent_id: str, res_output_path: Path, initial_program_code: str, inspiration_ids: List[str]
 ) -> SerializableResult:
@@ -245,6 +244,70 @@ def _run_iteration_worker(
 
         # Get artifacts
         artifacts = _worker_evaluator.get_pending_artifacts(child_id)
+
+        # TODO: if the child is in an error state, start invoking the error-fixing agent to fix errors here.
+        # The iteration finishes only after the error-fixing agent gives succeeds to fix errors, or gives up
+        # after n error fix attempts.
+
+        max_error_fix_attempts = 5
+        curr_error_fix_attempts = 0
+
+        while child_metrics.get("error") is not None:
+            # TODO: fix this such that it is an error fixing prompt
+            prompt = None
+
+            # prompt = _worker_prompt_sampler.build_prompt(
+            #     current_program=parent.code,
+            #     parent_program=parent.code,
+            #     program_metrics=parent.metrics,
+            #     initial_program_code=initial_program_code,
+            #     previous_programs=[p.to_dict() for p in best_programs_only],
+            #     top_programs=[p.to_dict() for p in programs_for_prompt],
+            #     inspirations=[p.to_dict() for p in inspirations],
+            #     language=_worker_config.language,
+            #     evolution_round=iteration,
+            #     diff_based_evolution=_worker_config.diff_based_evolution,
+            #     program_artifacts=parent_artifacts,
+            #     feature_dimensions=db_snapshot.get("feature_dimensions", []),
+            # )
+
+            try:
+                llm_response = asyncio.run(
+                    _worker_llm_ensemble.generate_with_context(
+                        system_message=prompt["system"],
+                        messages=[{"role": "user", "content": prompt["user"]}],
+                        rng=rng,
+                        res_output_path=res_output_path
+                    )
+                )
+            except Exception as e:
+                logger.error(f"LLM generation failed: {e}")
+                return SerializableResult(
+                    error=f"LLM generation failed: {str(e)}", 
+                    iteration=iteration
+                )
+
+            # Check for None response
+            if llm_response is None:
+                return SerializableResult(
+                    error="LLM returned None response", 
+                    iteration=iteration
+                )
+            
+            if _worker_config.diff_based_evolution:
+                raise Exception("Diff based evolution not yet supported for error fixing")
+            
+            from openevolve.utils.code_utils import parse_full_rewrite
+
+            child_code = parse_full_rewrite(llm_response, _worker_config.language)
+            import uuid
+
+            child_id = str(uuid.uuid4())
+            child_metrics = asyncio.run(_worker_evaluator.evaluate_program(child_code, child_id))
+
+            curr_error_fix_attempts += 1
+            if curr_error_fix_attempts == max_error_fix_attempts:
+                break
 
         # Create child program
         child_program = Program(
