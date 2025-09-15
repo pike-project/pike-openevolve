@@ -2157,18 +2157,18 @@ class ProgramDatabase:
             self.prompts_by_program[program_id] = {}
         self.prompts_by_program[program_id][template_key] = prompt
 
-        prompt_dir = os.path.join(self.output_dir, "prompts")
-        os.makedirs(prompt_dir, exist_ok=True)
+        # prompt_dir = os.path.join(self.output_dir, "prompts")
+        # os.makedirs(prompt_dir, exist_ok=True)
 
-        program_dir = os.path.join(prompt_dir, f"iter_{iteration}")
-        os.makedirs(program_dir, exist_ok=True)
+        # program_dir = os.path.join(prompt_dir, f"iter_{iteration}")
+        # os.makedirs(program_dir, exist_ok=True)
 
-        prompt_path = os.path.join(program_dir, "prompt.md")
-        res_path = os.path.join(program_dir, "response.md")
+        # prompt_path = os.path.join(program_dir, "prompt.md")
+        # res_path = os.path.join(program_dir, "response.md")
 
-        with open(prompt_path, "w") as f:
-            f.write(prompt["user"])
+        # with open(prompt_path, "w") as f:
+        #     f.write(prompt["user"])
         
-        if len(responses) > 0:
-            with open(res_path, "w") as f:
-                f.write(responses[0])
+        # if len(responses) > 0:
+        #     with open(res_path, "w") as f:
+        #         f.write(responses[0])

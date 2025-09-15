@@ -10,6 +10,7 @@ import signal
 import time
 import random
 import os
+import json
 from concurrent.futures import ProcessPoolExecutor, Future
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -123,8 +124,22 @@ def _lazy_init_worker_components():
             database=None,  # No shared database in worker
         )
 
+def get_fix_dir_paths(curr_iter_dir, fix_num):
+    fixes_dir = curr_iter_dir / "fixes"
+    fix_dir = fixes_dir / f"fix_{fix_num}"
+
+    os.makedirs(fix_dir, exist_ok=True)
+
+    return {
+        "res_output": fix_dir / "raw_response.json",
+        "prompt": fix_dir / "prompt.md",
+        "llm_response": fix_dir / "response.md",
+        "code": fix_dir / "code.py",
+        "metrics": fix_dir / "metrics.json"
+    }
+
 def _run_iteration_worker(
-    iteration: int, db_snapshot: Dict[str, Any], parent_id: str, res_output_path: Path, initial_program_code: str, inspiration_ids: List[str]
+    iteration: int, db_snapshot: Dict[str, Any], parent_id: str, curr_iter_dir: Path, initial_program_code: str, inspiration_ids: List[str]
 ) -> SerializableResult:
     """Run a single iteration in a worker process"""
     try:
@@ -133,6 +148,8 @@ def _run_iteration_worker(
 
         # Lazy initialization
         _lazy_init_worker_components()
+
+        fix_dir_paths = get_fix_dir_paths(curr_iter_dir, 0)
 
         # Reconstruct programs from snapshot
         programs = {pid: Program(**prog_dict) for pid, prog_dict in db_snapshot["programs"].items()}
@@ -179,6 +196,9 @@ def _run_iteration_worker(
             feature_dimensions=db_snapshot.get("feature_dimensions", []),
         )
 
+        with open(fix_dir_paths["prompt"], "w") as f:
+            f.write(prompt["user"])
+
         iteration_start = time.time()
 
         # Generate code modification (sync wrapper for async)
@@ -188,9 +208,12 @@ def _run_iteration_worker(
                     system_message=prompt["system"],
                     messages=[{"role": "user", "content": prompt["user"]}],
                     rng=rng,
-                    res_output_path=res_output_path
+                    res_output_path=fix_dir_paths["res_output"]
                 )
             )
+
+            with open(fix_dir_paths["llm_response"], "w") as f:
+                f.write(llm_response)
         except Exception as e:
             logger.error(f"LLM generation failed: {e}")
             return SerializableResult(
@@ -229,6 +252,9 @@ def _run_iteration_worker(
             child_code = new_code
             changes_summary = "Full rewrite"
 
+        with open(fix_dir_paths["code"], "w") as f:
+            f.write(child_code)
+
         # Check code length
         if len(child_code) > _worker_config.max_code_length:
             return SerializableResult(
@@ -242,6 +268,9 @@ def _run_iteration_worker(
         child_id = str(uuid.uuid4())
         child_metrics = asyncio.run(_worker_evaluator.evaluate_program(child_code, child_id))
 
+        with open(fix_dir_paths["metrics"], "w") as f:
+            json.dump(child_metrics, f, indent=4)
+
         # Get artifacts
         artifacts = _worker_evaluator.get_pending_artifacts(child_id)
 
@@ -253,10 +282,12 @@ def _run_iteration_worker(
         curr_error_fix_attempts = 0
 
         while child_metrics.get("error") is not None:
-            # TODO: fix this such that it is an error fixing prompt
-            prompt = None
+            fix_dir_paths = get_fix_dir_paths(curr_iter_dir, curr_error_fix_attempts + 1)
 
-            # prompt = _worker_prompt_sampler.build_prompt(
+            # TODO: fix this such that it is an error fixing prompt
+            error_fixing_prompt = None
+
+            # error_fixing_prompt = _worker_prompt_sampler.build_prompt(
             #     current_program=parent.code,
             #     parent_program=parent.code,
             #     program_metrics=parent.metrics,
@@ -271,15 +302,21 @@ def _run_iteration_worker(
             #     feature_dimensions=db_snapshot.get("feature_dimensions", []),
             # )
 
+            with open(fix_dir_paths["prompt"], "w") as f:
+                f.write(error_fixing_prompt["user"])
+
             try:
                 llm_response = asyncio.run(
                     _worker_llm_ensemble.generate_with_context(
-                        system_message=prompt["system"],
-                        messages=[{"role": "user", "content": prompt["user"]}],
+                        system_message=error_fixing_prompt["system"],
+                        messages=[{"role": "user", "content": error_fixing_prompt["user"]}],
                         rng=rng,
-                        res_output_path=res_output_path
+                        res_output_path=fix_dir_paths["res_output"]
                     )
                 )
+
+                with open(fix_dir_paths["llm_response"], "w") as f:
+                    f.write(llm_response)
             except Exception as e:
                 logger.error(f"LLM generation failed: {e}")
                 return SerializableResult(
@@ -300,10 +337,17 @@ def _run_iteration_worker(
             from openevolve.utils.code_utils import parse_full_rewrite
 
             child_code = parse_full_rewrite(llm_response, _worker_config.language)
+
+            with open(fix_dir_paths["code"], "w") as f:
+                f.write(child_code)
+
             import uuid
 
             child_id = str(uuid.uuid4())
             child_metrics = asyncio.run(_worker_evaluator.evaluate_program(child_code, child_id))
+
+            with open(fix_dir_paths["metrics"], "w") as f:
+                json.dump(child_metrics, f, indent=4)
 
             curr_error_fix_attempts += 1
             if curr_error_fix_attempts == max_error_fix_attempts:
@@ -352,12 +396,12 @@ class ProcessParallelController:
         self.initial_program_code = initial_program_code
 
         output_dir = Path(self.database.output_dir)
-        raw_responses_dir = output_dir / "raw_responses"
+        iter_output_dir = output_dir / "iter_output"
 
-        logger.info(f"raw_responses_dir: {raw_responses_dir}")
-        os.makedirs(raw_responses_dir, exist_ok=True)
+        logger.info(f"iter_output_dir: {iter_output_dir}")
+        os.makedirs(iter_output_dir, exist_ok=True)
 
-        self.raw_responses_dir = raw_responses_dir
+        self.iter_output_dir = iter_output_dir
 
         self.executor: Optional[ProcessPoolExecutor] = None
         self.shutdown_event = mp.Event()
@@ -740,7 +784,9 @@ class ProcessParallelController:
             db_snapshot = self._create_database_snapshot()
             db_snapshot["sampling_island"] = target_island  # Mark which island this is for
 
-            res_output_path = self.raw_responses_dir / f"response_{iteration}.json"
+            curr_iter_dir = self.iter_output_dir / f"iter_{iteration}"
+
+            os.makedirs(curr_iter_dir, exist_ok=True)
 
             # Submit to process pool
             future = self.executor.submit(
@@ -748,7 +794,7 @@ class ProcessParallelController:
                 iteration,
                 db_snapshot,
                 parent.id,
-                res_output_path,
+                curr_iter_dir,
                 self.initial_program_code,
                 [insp.id for insp in inspirations],
             )
