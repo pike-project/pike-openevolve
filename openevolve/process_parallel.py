@@ -288,24 +288,11 @@ def _run_iteration_worker(
             fix_dir_paths = get_fix_dir_paths(curr_iter_dir, curr_error_fix_attempts + 1)
 
             # error fixing prompt
-            error_fixing_prompt_msg = f"""
-You generated the following solution and it failed to compile, failed to pass correctness, or timed out:
-```python
-{child_code}
-```
-
-Artifacts:
-```
-{artifacts}
-```
-    
-Fix the issue in the new model code based on the provided artifacts of the run. Output the corrected code in codeblocks.
-Just output the new model code, no other text.
-"""
-            error_fixing_prompt = {
-                "system": prompt["system"],
-                "user": error_fixing_prompt_msg,
-            }
+            error_fixing_prompt = _worker_prompt_sampler.build_error_fix_prompt(
+                current_program=child_code,
+                initial_program_code=initial_program_code,
+                artifacts=artifacts,
+            )
 
             with open(fix_dir_paths["prompt"], "w") as f:
                 f.write(error_fixing_prompt["user"])

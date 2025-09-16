@@ -152,6 +152,51 @@ class PromptSampler:
             "user": user_message,
         }
 
+    def build_error_fix_prompt(
+        self,
+        current_program: str = "",
+        initial_program_code: str = "",
+        artifacts: Dict[str, Any] = {},
+    ) -> Dict[str, str]:
+        
+        # Use system template override if set
+        if self.system_template_override:
+            system_message = self.template_manager.get_template(self.system_template_override)
+        else:
+            system_message = self.config.system_message
+            # If system_message is a template name rather than content, get the template
+            if system_message in self.template_manager.templates:
+                system_message = self.template_manager.get_template(system_message)
+
+        user_message = f"""
+You write custom CUDA kernels to replace the pytorch operators in the given architecture to get speedups.
+
+You have complete freedom to choose the set of operators you want to replace. You may make the decision to replace some operators with custom CUDA kernels and leave others unchanged. You may replace multiple operators with custom implementations, consider operator fusion opportunities (combining multiple operators into a single kernel, for example, combining matmul+relu), or algorithmic changes (such as online softmax).
+
+With the following original architecture:
+```python
+{initial_program_code}
+```
+
+You generated the following solution and it failed to compile, failed to pass correctness, or timed out:
+```python
+{current_program}
+```
+
+Artifacts of your solution evaluation run:
+```
+{artifacts}
+```
+    
+Fix the issue in the new model code based on the provided artifacts of the run. Output the corrected code in codeblocks.
+Just output the new model code, no other text.
+"""
+
+        return {
+            "system": system_message,
+            "user": user_message,
+        }
+
     def _format_metrics(self, metrics: Dict[str, float]) -> str:
         """Format metrics for the prompt using safe formatting"""
         # Use safe formatting to handle mixed numeric and string values
