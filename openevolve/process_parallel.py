@@ -135,7 +135,7 @@ def get_fix_dir_paths(curr_iter_dir, fix_num):
         "prompt": fix_dir / "prompt.md",
         "llm_response": fix_dir / "response.md",
         "code": fix_dir / "code.py",
-        "metrics": fix_dir / "metrics.json"
+        "metrics_artifacts": fix_dir / "metrics_artifacts.json"
     }
 
 def _run_iteration_worker(
@@ -268,8 +268,11 @@ def _run_iteration_worker(
         child_id = str(uuid.uuid4())
         child_metrics = asyncio.run(_worker_evaluator.evaluate_program(child_code, child_id))
 
-        with open(fix_dir_paths["metrics"], "w") as f:
-            json.dump(child_metrics, f, indent=4)
+        with open(fix_dir_paths["metrics_artifacts"], "w") as f:
+            json.dump({
+                "metrics": child_metrics,
+                "artifacts": artifacts,
+            }, f, indent=4)
 
         # Get artifacts
         artifacts = _worker_evaluator.get_pending_artifacts(child_id)
@@ -287,6 +290,20 @@ def _run_iteration_worker(
             # TODO: fix this such that it is an error fixing prompt
             error_fixing_prompt = None
 
+            error_fixing_prompt = f"""
+You generated the following solution and it failed to compile, failed to pass correctness, or timed out:
+```python
+{child_code}
+```
+
+Artifacts:
+```
+{artifacts}
+```
+    
+Fix the issue in the new model code based on the provided artifacts of the run. Output the corrected code in codeblocks.
+Just output the new model code, no other text.
+"""
             # error_fixing_prompt = _worker_prompt_sampler.build_prompt(
             #     current_program=parent.code,
             #     parent_program=parent.code,
@@ -346,8 +363,13 @@ def _run_iteration_worker(
             child_id = str(uuid.uuid4())
             child_metrics = asyncio.run(_worker_evaluator.evaluate_program(child_code, child_id))
 
-            with open(fix_dir_paths["metrics"], "w") as f:
-                json.dump(child_metrics, f, indent=4)
+            artifacts = _worker_evaluator.get_pending_artifacts(child_id)
+
+            with open(fix_dir_paths["metrics_artifacts"], "w") as f:
+                json.dump({
+                    "metrics": child_metrics,
+                    "artifacts": artifacts,
+                }, f, indent=4)
 
             curr_error_fix_attempts += 1
             if curr_error_fix_attempts == max_error_fix_attempts:
