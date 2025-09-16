@@ -268,14 +268,14 @@ def _run_iteration_worker(
         child_id = str(uuid.uuid4())
         child_metrics = asyncio.run(_worker_evaluator.evaluate_program(child_code, child_id))
 
+        # Get artifacts
+        artifacts = _worker_evaluator.get_pending_artifacts(child_id)
+
         with open(fix_dir_paths["metrics_artifacts"], "w") as f:
             json.dump({
                 "metrics": child_metrics,
                 "artifacts": artifacts,
             }, f, indent=4)
-
-        # Get artifacts
-        artifacts = _worker_evaluator.get_pending_artifacts(child_id)
 
         # TODO: if the child is in an error state, start invoking the error-fixing agent to fix errors here.
         # The iteration finishes only after the error-fixing agent gives succeeds to fix errors, or gives up
@@ -287,10 +287,8 @@ def _run_iteration_worker(
         while child_metrics.get("error") is not None:
             fix_dir_paths = get_fix_dir_paths(curr_iter_dir, curr_error_fix_attempts + 1)
 
-            # TODO: fix this such that it is an error fixing prompt
-            error_fixing_prompt = None
-
-            error_fixing_prompt = f"""
+            # error fixing prompt
+            error_fixing_prompt_msg = f"""
 You generated the following solution and it failed to compile, failed to pass correctness, or timed out:
 ```python
 {child_code}
@@ -304,20 +302,10 @@ Artifacts:
 Fix the issue in the new model code based on the provided artifacts of the run. Output the corrected code in codeblocks.
 Just output the new model code, no other text.
 """
-            # error_fixing_prompt = _worker_prompt_sampler.build_prompt(
-            #     current_program=parent.code,
-            #     parent_program=parent.code,
-            #     program_metrics=parent.metrics,
-            #     initial_program_code=initial_program_code,
-            #     previous_programs=[p.to_dict() for p in best_programs_only],
-            #     top_programs=[p.to_dict() for p in programs_for_prompt],
-            #     inspirations=[p.to_dict() for p in inspirations],
-            #     language=_worker_config.language,
-            #     evolution_round=iteration,
-            #     diff_based_evolution=_worker_config.diff_based_evolution,
-            #     program_artifacts=parent_artifacts,
-            #     feature_dimensions=db_snapshot.get("feature_dimensions", []),
-            # )
+            error_fixing_prompt = {
+                "system": prompt["system"],
+                "user": error_fixing_prompt_msg,
+            }
 
             with open(fix_dir_paths["prompt"], "w") as f:
                 f.write(error_fixing_prompt["user"])
