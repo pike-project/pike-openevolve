@@ -125,8 +125,8 @@ def _lazy_init_worker_components():
         )
 
 def get_fix_dir_paths(curr_iter_dir, fix_num):
-    fixes_dir = curr_iter_dir / "fixes"
-    fix_dir = fixes_dir / f"fix_{fix_num}"
+    fixes_dir = curr_iter_dir / "attempts"
+    fix_dir = fixes_dir / f"attempt_{fix_num}"
 
     os.makedirs(fix_dir, exist_ok=True)
 
