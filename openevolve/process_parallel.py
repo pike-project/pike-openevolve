@@ -35,6 +35,7 @@ class SerializableResult:
     artifacts: Optional[Dict[str, Any]] = None
     iteration: int = 0
     error: Optional[str] = None
+    attempt_count: int = 0
 
 
 def _worker_init(config_dict: dict, evaluation_file: str) -> None:
@@ -350,6 +351,8 @@ def _run_iteration_worker(
             if curr_error_fix_attempts == max_error_fix_attempts:
                 break
 
+        attempt_count = 1 + curr_error_fix_attempts
+
         # Create child program
         child_program = Program(
             id=child_id,
@@ -376,6 +379,7 @@ def _run_iteration_worker(
             llm_response=llm_response,
             artifacts=artifacts,
             iteration=iteration,
+            attempt_count=attempt_count,
         )
 
     except Exception as e:
@@ -542,6 +546,9 @@ class ProcessParallelController:
         next_iteration = current_iteration
         completed_iterations = 0
 
+        # this includes error fix attempts
+        total_attempt_count = 0
+
         # Island management
         programs_per_island = max(1, max_iterations // (self.config.database.num_islands * 10))
         current_island_counter = 0
@@ -561,6 +568,7 @@ class ProcessParallelController:
         while (
             pending_futures
             and completed_iterations < max_iterations
+            and total_attempt_count < max_iterations
             and not self.shutdown_event.is_set()
         ):
             # Find completed futures
@@ -579,6 +587,8 @@ class ProcessParallelController:
 
             try:
                 result = future.result()
+
+                total_attempt_count += result.attempt_count
 
                 if result.error:
                     logger.warning(f"Iteration {completed_iteration} error: {result.error}")
@@ -741,7 +751,8 @@ class ProcessParallelController:
             # Submit next iterations maintaining island balance
             for island_id in range(self.num_islands):
                 if (len(island_pending[island_id]) < batch_per_island 
-                    and next_iteration < total_iterations 
+                    and next_iteration < total_iterations
+                    and total_attempt_count < total_iterations
                     and not self.shutdown_event.is_set()):
                     future = self._submit_iteration(next_iteration, island_id)
                     if future:
