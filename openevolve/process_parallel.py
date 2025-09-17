@@ -764,8 +764,11 @@ class ProcessParallelController:
         # Handle shutdown
         if self.shutdown_event.is_set():
             logger.info("Shutdown requested, canceling remaining evaluations...")
-            for future in pending_futures.values():
-                future.cancel()
+            # for future in pending_futures.values():
+            #     future.cancel()
+
+        for future in pending_futures.values():
+            future.cancel()
 
         logger.info("Evolution completed")
 
