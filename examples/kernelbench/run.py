@@ -2,6 +2,7 @@ import os
 import asyncio
 import shutil
 import json
+import yaml
 from pathlib import Path
 from datetime import datetime
 from openevolve import OpenEvolve
@@ -9,7 +10,7 @@ import argparse
 
 curr_dir = Path(os.path.realpath(os.path.dirname(__file__)))
 
-async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int, eval_port: int, base_config_path: Path):
+async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int, eval_port: int, base_config_path: Path, max_fix_attempts: int):
     level_dir = kernel_bench_dir / "KernelBench" / f"level{level}"
 
     task_filename = None
@@ -40,7 +41,13 @@ async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int,
 
     config_path = evolve_dir / "config.yaml"
 
-    shutil.copy(base_config_path, config_path)
+    with open(base_config_path, "r") as f:
+        config = yaml.safe_load(f)
+
+    config["max_fix_attempts"] = max_fix_attempts
+
+    with open(config_path, "w") as f:
+        yaml.safe_dump(config, f, sort_keys=False)
 
     # when we grab a task to run from KernelBench, must wrap it with EVOLVE blocks!
     init_program = evolve_dir / "initial_program.py"
@@ -81,6 +88,7 @@ async def main():
     parser.add_argument("--task_end", type=int, required=True)
     parser.add_argument("--eval_port", type=int, required=False, default=8000)
     parser.add_argument("--run_dir", type=str, required=False)
+    parser.add_argument("--max_fix_attempts", type=int, required=False, default=0)
     args = parser.parse_args()
 
     level_str = args.level
@@ -100,7 +108,7 @@ async def main():
     base_config_path = curr_dir / "config.yaml"
 
     for task in range(task_start, task_end + 1):
-        await run_task(kernel_bench_dir, run_dir, level_str, task, args.eval_port, base_config_path)
+        await run_task(kernel_bench_dir, run_dir, level_str, task, args.eval_port, base_config_path, args.max_fix_attempts)
 
 if __name__ == "__main__":
     asyncio.run(main())

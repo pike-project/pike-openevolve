@@ -281,7 +281,7 @@ def _run_iteration_worker(
         # The iteration finishes only after the error-fixing agent gives succeeds to fix errors, or gives up
         # after n error fix attempts.
 
-        max_error_fix_attempts = 5
+        max_error_fix_attempts = _worker_config.max_fix_attempts
         curr_error_fix_attempts = 0
 
         while child_metrics.get("error") is not None:
@@ -445,6 +445,7 @@ class ProcessParallelController:
             "diff_based_evolution": config.diff_based_evolution,
             "max_code_length": config.max_code_length,
             "language": config.language,
+            "max_fix_attempts": config.max_fix_attempts,
         }
 
     def start(self) -> None:

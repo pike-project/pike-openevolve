@@ -1,5 +1,6 @@
 # Configuration for function minimization example
 max_iterations: 300
+max_fix_attempts: 0
 checkpoint_interval: 10
 
 # LLM configuration
