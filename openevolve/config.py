@@ -261,6 +261,7 @@ class Config:
     log_dir: Optional[str] = None
     random_seed: Optional[int] = 42
     language: str = None
+    max_fix_attempts: int = 0
 
     # Component configurations
     llm: LLMConfig = field(default_factory=LLMConfig)
