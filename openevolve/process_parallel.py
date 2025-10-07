@@ -277,14 +277,14 @@ def _run_iteration_worker(
                 "artifacts": artifacts,
             }, f, indent=4)
 
-        # TODO: if the child is in an error state, start invoking the error-fixing agent to fix errors here.
+        # if the child is in an error state, start invoking the error-fixing agent to fix errors here.
         # The iteration finishes only after the error-fixing agent gives succeeds to fix errors, or gives up
         # after n error fix attempts.
 
         max_error_fix_attempts = _worker_config.max_fix_attempts
         curr_error_fix_attempts = 0
 
-        while child_metrics.get("error") is not None:
+        while max_error_fix_attempts > 0 and child_metrics.get("error") is not None:
             fix_dir_paths = get_fix_dir_paths(curr_iter_dir, curr_error_fix_attempts + 1)
 
             # error fixing prompt
@@ -347,7 +347,7 @@ def _run_iteration_worker(
                 }, f, indent=4)
 
             curr_error_fix_attempts += 1
-            if curr_error_fix_attempts == max_error_fix_attempts:
+            if curr_error_fix_attempts >= max_error_fix_attempts:
                 break
 
         # Create child program
