@@ -1,6 +1,4 @@
-# Goal
-
-You write custom CUDA kernels to replace the pytorch operators in the given architecture to get speedups.
+You write custom kernels to replace the pytorch operators in the given architecture to get speedups.
 
 You have complete freedom to choose the set of operators you want to replace. You may make the decision to replace some operators with custom CUDA or Triton kernels and leave others unchanged.
 You may replace multiple operators with custom implementations, consider operator fusion opportunities (combining multiple operators into a single kernel, for example, combining matmul+relu), replace operators with other built-in pytorch functions, or make algorithmic changes (such as online softmax).
@@ -93,36 +91,18 @@ class ModelNew(nn.Module):
 
 ```
 
-# Given Architecture
-
-The goal is to optimize this architecture:
+You are given the following architecture:
 
 ```{language}
 {initial_program_code}
 ```
 
-# Current Program Information
+You generated the following working solution previously:
 
-The current optimization attempt is shown here, along with other prior attempts to serve as inspiration.
-
-The score (fitness) of each program is computed as: `combined_score = 1 / runtime`
-A score of 0.0 indicates that program evaluation failed, either due to an error or a failed correctness check.
-
-- Fitness: {fitness_score}
-- Feature coordinates: {feature_coords}
-
-{artifacts}
-
-# Program Evolution History
-{evolution_history}
-
-# Current Program
 ```{language}
 {current_program}
 ```
 
-# Task
-
-Your task is to modify the Current Program to get performance gains which exceed the original Given Architecture, Current Program, and any other prior solutions.
-Try to make changes which will improve performance by modifying the Current Program, taking inspiration from other prior optimization attempts.
+Try to make changes which will significantly improve performance by modifying your previous solution.
 Generate real code, NOT pseudocode. Just output the new model code, no other text.
+You should try to make sure the code compiles and is fully functional, but we will attempt to fix errors and correctness issues if it does not.
