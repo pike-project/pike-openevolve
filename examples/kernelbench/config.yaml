@@ -34,8 +34,8 @@ prompt:
 # Database configuration
 database:
   population_size: 25
-  archive_size: 12
-  num_islands: 3
+  archive_size: 4
+  num_islands: 1
   # the elite_selection_ratio tells us the percentage of elite programs that will be included in
   # the "inspiration" set of solutions that are provided as part of the prompt
   elite_selection_ratio: 0.2

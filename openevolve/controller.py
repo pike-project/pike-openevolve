@@ -150,7 +150,7 @@ class OpenEvolve:
         if self.config.random_seed is not None:
             self.config.database.random_seed = self.config.random_seed
 
-        self.database = ProgramDatabase(self.config.database, self.output_dir)
+        self.database = ProgramDatabase(self.config.database, self.output_dir, self.initial_program_code)
 
         self.evaluator = Evaluator(
             self.config.evaluator,

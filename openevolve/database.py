@@ -99,9 +99,10 @@ class ProgramDatabase:
     It also tracks the absolute best program separately to ensure it's never lost.
     """
 
-    def __init__(self, config: DatabaseConfig, output_dir):
+    def __init__(self, config: DatabaseConfig, output_dir, initial_program_code):
         self.config = config
         self.output_dir = output_dir
+        self.initial_program_code = initial_program_code
 
         # In-memory program storage
         self.programs: Dict[str, Program] = {}
@@ -874,6 +875,9 @@ class ProgramDatabase:
         Args:
             program: Program to consider for archive
         """
+        if program.code == self.initial_program_code:
+            return
+
         # If archive not full, add program
         if len(self.archive) < self.config.archive_size:
             self.archive.add(program.id)
@@ -1118,14 +1122,20 @@ class ProgramDatabase:
             return self._sample_exploration_parent()
 
         # Clean up stale references in archive
-        valid_archive = [pid for pid in self.archive if pid in self.programs]
+        valid_archive_tmp = [pid for pid in self.archive if pid in self.programs]
 
         # Remove stale program IDs from archive
-        if len(valid_archive) < len(self.archive):
-            stale_ids = self.archive - set(valid_archive)
+        if len(valid_archive_tmp) < len(self.archive):
+            stale_ids = self.archive - set(valid_archive_tmp)
             logger.debug(f"Removing {len(stale_ids)} stale program IDs from archive")
             for stale_id in stale_ids:
                 self.archive.discard(stale_id)
+
+        valid_archive = []
+        for pid in valid_archive_tmp:
+            prog = self.programs[pid]
+            if prog.code != self.initial_program_code:
+                valid_archive.append(pid)
 
         # If no valid archive programs, fallback to exploration
         if not valid_archive:
