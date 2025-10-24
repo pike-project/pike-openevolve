@@ -34,6 +34,7 @@ class SerializableResult:
     llm_response: Optional[str] = None
     artifacts: Optional[Dict[str, Any]] = None
     iteration: int = 0
+    attempts: int = 0
     error: Optional[str] = None
 
 
@@ -368,6 +369,8 @@ def _run_iteration_worker(
 
         iteration_time = time.time() - iteration_start
 
+        iter_attempts = curr_error_fix_attempts + 1
+
         return SerializableResult(
             child_program_dict=child_program.to_dict(),
             parent_id=parent.id,
@@ -375,6 +378,7 @@ def _run_iteration_worker(
             prompt=prompt,
             llm_response=llm_response,
             artifacts=artifacts,
+            attempts=iter_attempts,
             iteration=iteration,
         )
 
@@ -558,11 +562,14 @@ class ProcessParallelController:
         else:
             logger.info("Early stopping disabled")
 
+        total_attempts = 0
+
         # Process results as they complete
         while (
             pending_futures
             and completed_iterations < max_iterations
             and not self.shutdown_event.is_set()
+            and total_attempts < max_iterations
         ):
             # Find completed futures
             completed_iteration = None
@@ -608,6 +615,12 @@ class ProcessParallelController:
                             prompt=result.prompt,
                             responses=[result.llm_response] if result.llm_response else [],
                         )
+
+                    attempts = result.attempts
+                    total_attempts += attempts
+                    if total_attempts >= max_iterations:
+                        self.stop()
+                        break
 
                     # Island management
                     if (
