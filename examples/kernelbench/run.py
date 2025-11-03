@@ -10,8 +10,8 @@ import argparse
 
 curr_dir = Path(os.path.realpath(os.path.dirname(__file__)))
 
-async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int, eval_port: int, base_config_path: Path, max_fix_attempts: int):
-    level_dir = kernel_bench_dir / "KernelBench" / f"level{level}"
+async def run_task(pike_dir: Path, run_dir: Path, level: str, task: int, eval_port: int, base_config_path: Path, max_fix_attempts: int):
+    level_dir = pike_dir / "KernelBench" / f"level{level}"
 
     task_filename = None
 
@@ -82,7 +82,7 @@ async def run_task(kernel_bench_dir: Path, run_dir: Path, level: str, task: int,
 
 async def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--kernel_bench_dir", type=str, required=True)
+    parser.add_argument("--pike_dir", type=str, required=True)
     parser.add_argument("--level", type=str, required=True)
     parser.add_argument("--task_start", type=int, required=True)
     parser.add_argument("--task_end", type=int, required=True)
@@ -95,7 +95,7 @@ async def main():
     task_start = args.task_start
     task_end = args.task_end
 
-    kernel_bench_dir = Path(args.kernel_bench_dir)
+    pike_dir = Path(args.pike_dir)
 
     if args.run_dir is None:
         timestamp_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -108,7 +108,7 @@ async def main():
     base_config_path = curr_dir / "config.yaml"
 
     for task in range(task_start, task_end + 1):
-        await run_task(kernel_bench_dir, run_dir, level_str, task, args.eval_port, base_config_path, args.max_fix_attempts)
+        await run_task(pike_dir, run_dir, level_str, task, args.eval_port, base_config_path, args.max_fix_attempts)
 
 if __name__ == "__main__":
     asyncio.run(main())
