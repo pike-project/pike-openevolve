@@ -1,3 +1,5 @@
+# Modified by Kirill Nagaitsev in 2025
+
 """
 OpenAI API interface for LLMs
 """

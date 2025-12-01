@@ -1,3 +1,5 @@
+# Modified by Kirill Nagaitsev in 2025
+
 """
 Process-based parallel controller for true parallelism
 """
