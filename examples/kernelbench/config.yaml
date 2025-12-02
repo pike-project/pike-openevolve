@@ -23,7 +23,7 @@ llm:
 # Prompt configuration
 prompt:
   # Important: template_dir must be relative to the dir from which you run the example
-  template_dir: "examples/kernelbench/templates"
+  template_dir: "examples/kernelbench/templates_mutation"
   system_message: "You are a performance engineering expert"
 
   # Number of previous top programs to include in the prompt.
