@@ -82,13 +82,13 @@ async def run_task(pike_dir: Path, run_dir: Path, level: str, task: int, eval_po
 
 async def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pike_dir", type=str, required=True)
+    parser.add_argument("--pike-dir", type=str, required=True)
     parser.add_argument("--level", type=str, required=True)
-    parser.add_argument("--task_start", type=int, required=True)
-    parser.add_argument("--task_end", type=int, required=True)
-    parser.add_argument("--eval_port", type=int, required=False, default=8000)
-    parser.add_argument("--run_dir", type=str, required=False)
-    parser.add_argument("--max_fix_attempts", type=int, required=False, default=0)
+    parser.add_argument("--task-start", type=int, required=True)
+    parser.add_argument("--task-end", type=int, required=True)
+    parser.add_argument("--eval-port", type=int, required=False, default=8000)
+    parser.add_argument("--run-dir", type=str, required=False)
+    parser.add_argument("--max-fix-attempts", type=int, required=False, default=0)
     args = parser.parse_args()
 
     level_str = args.level
