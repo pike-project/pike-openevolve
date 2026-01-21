@@ -86,7 +86,7 @@ async def main():
     parser.add_argument("--level", type=str, required=True, help="KernelBench level")
     parser.add_argument("--task-start", type=int, required=True, help="Task range start, inclusive")
     parser.add_argument("--task-end", type=int, required=True, help="Task range end, inclusive")
-    parser.add_argument("--eval-port", type=int, required=False, default=8000, help="Evaluation server port to communicate with")
+    parser.add_argument("--eval-port", type=int, required=False, default=8000, help="Port where evaluation server is running")
     parser.add_argument("--run-dir", type=str, required=False, help="Directory for run results output")
     parser.add_argument("--max-fix-attempts", type=int, required=False, default=0, help="Error Fixing Agent max attempts allowed")
     args = parser.parse_args()
