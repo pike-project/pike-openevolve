@@ -13,11 +13,10 @@ authors = [
     {name = "codelion"}
 ]
 dependencies = [
-    "openai>=1.0.0",
-    "pyyaml>=6.0",
-    "numpy>=1.22.0",
-    "tqdm>=4.64.0",
-    "flask",
+    "openai==2.15.0",
+    "pyyaml==6.0.3",
+    "numpy==2.4.1",
+    "tqdm==4.67.1",
 ]
 
 [project.optional-dependencies]
